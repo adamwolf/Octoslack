@@ -1,6 +1,13 @@
 # coding=utf-8
 # encoding: utf-8
 from __future__ import absolute_import
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import chr
+from builtins import str
+from past.utils import old_div
 from octoprint.util.version import get_octoprint_version_string
 from tempfile import mkstemp
 from datetime import timedelta
@@ -21,10 +28,10 @@ from sarge import run, Capture, shell_quote
 from discord_webhook import DiscordWebhook, DiscordEmbed
 import octoprint.util
 import octoprint.plugin
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import datetime
 import base64
-import Queue
+import queue
 import json
 import os
 import os.path
@@ -851,7 +858,7 @@ class OctoslackPlugin(
                 ##OctoPrint wraps the interval in a lambda function
                 if callable(existing_interval):
                     existing_interval = existing_interval()
-                existing_interval = existing_interval / 60
+                existing_interval = old_div(existing_interval, 60)
 
                 self._logger.debug("New progress interval: " + str(new_interval))
                 self._logger.debug(
@@ -922,7 +929,7 @@ class OctoslackPlugin(
                 ##OctoPrint wraps the interval in a lambda function
                 if callable(existing_interval):
                     existing_interval = existing_interval()
-                existing_interval = existing_interval / 60
+                existing_interval = old_div(existing_interval, 60)
 
                 self._logger.debug("New heartbeat interval: " + str(new_interval))
                 self._logger.debug(
@@ -1416,10 +1423,10 @@ class OctoslackPlugin(
                         temp_str += (
                             ", Bed: "
                             + str(printer_temps["bed"]["actual"])
-                            + unichr(176)
+                            + chr(176)
                             + "C/"
                             + str(printer_temps["bed"]["target"])
-                            + unichr(176)
+                            + chr(176)
                             + "C"
                         )
                     elif key.startswith("tool"):
@@ -1447,10 +1454,10 @@ class OctoslackPlugin(
                                 + nozzle_name
                                 + ": "
                                 + str(printer_temps[key]["actual"])
-                                + unichr(176)
+                                + chr(176)
                                 + "C/"
                                 + str(printer_temps[key]["target"])
-                                + unichr(176)
+                                + chr(176)
                                 + "C"
                             )
 
@@ -1486,7 +1493,7 @@ class OctoslackPlugin(
                 if len(footer) > 0:
                     footer += ", "
 
-                footer += "RasPi: " + rpi_tmp + unichr(176) + "C"
+                footer += "RasPi: " + rpi_tmp + chr(176) + "C"
 
         if reportEnvironment:
             if len(footer) > 0:
@@ -1683,7 +1690,7 @@ class OctoslackPlugin(
         command_thread = None
         command_thread_rsp = None
         if command_enabled:
-            command_thread_rsp = Queue.Queue()
+            command_thread_rsp = queue.Queue()
             command_thread = threading.Thread(
                 target=self.execute_command,
                 args=(event, command, capture_command_output, command_thread_rsp),
@@ -2387,13 +2394,13 @@ class OctoslackPlugin(
             return self.humanize_duration(seconds)
 
     def humanize_duration(self, total_seconds):
-        total_days = int(total_seconds / 86400)
+        total_days = int(old_div(total_seconds, 86400))
         total_seconds -= total_days * 86400
 
-        total_hours = int(total_seconds / 3600)
+        total_hours = int(old_div(total_seconds, 3600))
         total_seconds -= total_hours * 3600
 
-        total_minutes = int(total_seconds / 60)
+        total_minutes = int(old_div(total_seconds, 60))
         total_seconds = int(total_seconds - (total_minutes * 60))
 
         time_str = ""
@@ -2437,7 +2444,7 @@ class OctoslackPlugin(
         return time_str
 
     _bot_progress_last_req = None
-    _bot_progress_last_snapshot_queue = Queue.Queue()
+    _bot_progress_last_snapshot_queue = queue.Queue()
     _slack_next_progress_snapshot_time = 0
 
     def execute_command(self, event, command, capture_output, command_rsp):
@@ -4238,7 +4245,7 @@ class OctoslackPlugin(
                 if len(entry) == 0:
                     continue
 
-                entry = urllib2.unquote(entry)
+                entry = urllib.parse.unquote(entry)
 
                 parts = entry.split("|")
                 url = parts[0].strip()
@@ -4371,7 +4378,7 @@ class OctoslackPlugin(
                 if not basic_auth_user == None:
                     url = new_url
 
-            imgReq = urllib2.Request(url)
+            imgReq = urllib.request.Request(url)
 
             if not basic_auth_user == None and not basic_auth_pwd == None:
                 auth_header = base64.b64encode(
@@ -4379,7 +4386,7 @@ class OctoslackPlugin(
                 )
                 imgReq.add_header("Authorization", "Basic %s" % auth_header)
 
-            imgRsp = urllib2.urlopen(imgReq, timeout=2)
+            imgRsp = urllib.request.urlopen(imgReq, timeout=2)
 
             temp_fd, temp_filename = mkstemp()
             os.close(temp_fd)
@@ -4476,7 +4483,7 @@ class OctoslackPlugin(
             if images == 0:
                 return None, None
 
-            widths, heights = zip(*(i.size for i in images))
+            widths, heights = list(zip(*(i.size for i in images)))
 
             total_width = sum(widths)
             max_width = max(widths)
@@ -4583,7 +4590,7 @@ class OctoslackPlugin(
                     if arrangement == "VERTICAL":
                         x_adjust = image_spacer
                         if im.size[0] != max_width:
-                            x_adjust = (max_width - im.size[0]) / 2
+                            x_adjust = old_div((max_width - im.size[0]), 2)
 
                         new_im.paste(im, (x_adjust, y_offset))
                         y_offset += im.size[1]
@@ -4591,7 +4598,7 @@ class OctoslackPlugin(
                     elif arrangement == "HORIZONTAL":
                         y_adjust = image_spacer
                         if im.size[1] != max_height:
-                            y_adjust = (max_height - im.size[1]) / 2
+                            y_adjust = old_div((max_height - im.size[1]), 2)
 
                         new_im.paste(im, (x_offset, y_adjust))
                         x_offset += im.size[0]
@@ -4608,11 +4615,11 @@ class OctoslackPlugin(
 
                     x_adjust = 0
                     if width < col_width:
-                        x_adjust = (col_width - width) / 2
+                        x_adjust = old_div((col_width - width), 2)
 
                     y_adjust = 0
                     if height < row_height:
-                        y_adjust = (row_height - height) / 2
+                        y_adjust = old_div((row_height - height), 2)
 
                     new_im.paste(im, (x_offset + x_adjust, y_offset + y_adjust))
 
