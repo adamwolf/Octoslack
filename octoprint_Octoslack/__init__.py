@@ -54,6 +54,7 @@ import socket
 SLACKER_TIMEOUT = 60
 COMMAND_EXECUTION_WAIT = 10
 
+__plugin_pythoncompat__ = ">=2.7,<4"
 
 class OctoslackPlugin(
     octoprint.plugin.SettingsPlugin,

@@ -14,6 +14,9 @@ homepage: https://github.com/you/OctoPrint-Octoslack
 source: https://github.com/you/OctoPrint-Octoslack
 archive: https://github.com/you/OctoPrint-Octoslack/archive/master.zip
 
+compatibility:
+  python: ">=2.7,<4"
+
 # TODO set this to true if your plugin uses the dependency_links setup parameter to include
 # library versions not yet published on PyPi. SHOULD ONLY BE USED IF THERE IS NO OTHER OPTION!
 follow_dependency_links: false
