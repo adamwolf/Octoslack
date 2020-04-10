@@ -35,7 +35,6 @@ import queue
 import json
 import os
 import os.path
-import exceptions
 import uuid
 import time
 import datetime
